@@ -1,6 +1,7 @@
 package org.union4dev.deobfuscator.transformer.implement;
 
 import org.objectweb.asm.tree.*;
+import org.tinylog.Logger;
 import org.union4dev.deobfuscator.transformer.Transformer;
 
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ public class QProtectCrasherTransformer extends Transformer {
 
     @Override
     public void transform(Map<String, ClassNode> nodeMap) {
+        Logger.info("Start QProtectCrasherTransformer.");
         int count = 0;
         for (ClassNode classNode : nodeMap.values()) {
             for (MethodNode method : classNode.methods) {
@@ -46,7 +48,7 @@ public class QProtectCrasherTransformer extends Transformer {
                 count += taskRemove.size();
             }
         }
-        System.out.println("Finish QProtectCrasherTransformer with " + count + " trash tcbs removed.");
+        Logger.info("Finish QProtectCrasherTransformer with " + count + " trash tcbs removed.");
     }
 
     private boolean isCrasherHandler(LabelNode labelNode) {

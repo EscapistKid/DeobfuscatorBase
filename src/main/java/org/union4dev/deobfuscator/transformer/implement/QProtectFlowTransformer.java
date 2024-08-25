@@ -2,6 +2,7 @@ package org.union4dev.deobfuscator.transformer.implement;
 
 import org.objectweb.asm.tree.*;
 import org.objectweb.asm.tree.analysis.*;
+import org.tinylog.Logger;
 import org.union4dev.deobfuscator.transformer.Transformer;
 import org.union4dev.deobfuscator.util.ClassNodeUtil;
 import org.union4dev.deobfuscator.util.InstructionModifier;
@@ -19,6 +20,7 @@ public class QProtectFlowTransformer extends Transformer {
 
     @Override
     public void transform(Map<String, ClassNode> nodeMap) {
+        Logger.info("Start QProtectFlowTransformer.");
         final AtomicInteger counter1 = new AtomicInteger();
         final AtomicInteger counter2 = new AtomicInteger();
         for (ClassNode classNode : nodeMap.values()) {
@@ -27,7 +29,7 @@ public class QProtectFlowTransformer extends Transformer {
                 part2(classNode, method, counter2);
             }
         }
-        System.out.println("Finish QProtectFlowTransformer with " + counter1.get() + " junk code removed & " + counter2.get() + " fake jump removed.");
+        Logger.info("Finish QProtectFlowTransformer with " + counter1.get() + " junk code removed & " + counter2.get() + " fake jump removed.");
     }
 
     /*

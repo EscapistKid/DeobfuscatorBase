@@ -1,6 +1,7 @@
 package org.union4dev.deobfuscator.transformer.implement;
 
 import org.objectweb.asm.tree.*;
+import org.tinylog.Logger;
 import org.union4dev.deobfuscator.transformer.Transformer;
 import org.union4dev.deobfuscator.util.ClassNodeUtil;
 import org.union4dev.deobfuscator.util.InstructionModifier;
@@ -12,6 +13,8 @@ import java.util.Objects;
 public class QProtectNumberTransformer extends Transformer {
     @Override
     public void transform(Map<String, ClassNode> nodeMap) {
+        Logger.info("Start QProtectNumberTransformer.");
+        int count = 0;
         for (ClassNode classNode : nodeMap.values()) {
             for (MethodNode method : classNode.methods) {
                 boolean modified;
@@ -25,6 +28,7 @@ public class QProtectNumberTransformer extends Transformer {
                             modifier.remove(instruction.getPrevious());
                             modifier.replace(instruction, ClassNodeUtil.getIntInsn(result));
                             modified = true;
+                            count++;
                             break;
                         } else if (TransformerHelper.isInvokeStatic(instruction, "java/lang/Long", "parseLong", "(Ljava/lang/String;I)J") && ClassNodeUtil.isInteger(instruction.getPrevious()) && ClassNodeUtil.isString(instruction.getPrevious().getPrevious())) {
                             final long result = Long.parseLong(ClassNodeUtil.getString(instruction.getPrevious().getPrevious()), ClassNodeUtil.getInteger(instruction.getPrevious()));
@@ -32,18 +36,21 @@ public class QProtectNumberTransformer extends Transformer {
                             modifier.remove(instruction.getPrevious());
                             modifier.replace(instruction, new LdcInsnNode(result));
                             modified = true;
+                            count++;
                             break;
                         } else if (TransformerHelper.isInvokeVirtual(instruction, "java/lang/String", "hashCode", "()I") && ClassNodeUtil.isString(instruction.getPrevious())) {
                             final int result = ClassNodeUtil.getString(instruction.getPrevious()).hashCode();
                             modifier.remove(instruction.getPrevious());
                             modifier.replace(instruction, ClassNodeUtil.getIntInsn(result));
                             modified = true;
+                            count++;
                             break;
                         } else if (TransformerHelper.isInvokeStatic(instruction, "java/lang/Float", "intBitsToFloat", "(I)F") && ClassNodeUtil.isInteger(instruction.getPrevious())) {
                             final float result = Float.intBitsToFloat(ClassNodeUtil.getInteger(instruction.getPrevious()));
                             modifier.remove(instruction.getPrevious());
                             modifier.replace(instruction, new LdcInsnNode(result));
                             modified = true;
+                            count++;
                             break;
                         } else if (TransformerHelper.isInvokeStatic(instruction, "java/lang/Float", "floatToIntBits", "(F)I") && ClassNodeUtil.isNumber(instruction.getPrevious())) {
                             final Number number = ClassNodeUtil.getNumber(instruction.getPrevious());
@@ -52,6 +59,7 @@ public class QProtectNumberTransformer extends Transformer {
                                 modifier.remove(instruction.getPrevious());
                                 modifier.replace(instruction, ClassNodeUtil.getIntInsn(result));
                                 modified = true;
+                                count++;
                                 break;
                             }
                         } else if (TransformerHelper.isInvokeStatic(instruction, "java/lang/Double", "longBitsToDouble", "(J)D") && ClassNodeUtil.isLong(instruction.getPrevious())) {
@@ -59,6 +67,7 @@ public class QProtectNumberTransformer extends Transformer {
                             modifier.remove(instruction.getPrevious());
                             modifier.replace(instruction, new LdcInsnNode(result));
                             modified = true;
+                            count++;
                             break;
                         } else if (TransformerHelper.isInvokeStatic(instruction, "java/lang/Double", "doubleToLongBits", "(D)J") && ClassNodeUtil.isNumber(instruction.getPrevious())) {
                             final Number number = ClassNodeUtil.getNumber(instruction.getPrevious());
@@ -67,6 +76,7 @@ public class QProtectNumberTransformer extends Transformer {
                                 modifier.remove(instruction.getPrevious());
                                 modifier.replace(instruction, new LdcInsnNode(result));
                                 modified = true;
+                                count++;
                                 break;
                             }
                         } else if (instruction.getOpcode() == I2B && ClassNodeUtil.isInteger(instruction.getPrevious())) {
@@ -74,18 +84,21 @@ public class QProtectNumberTransformer extends Transformer {
                             modifier.remove(instruction.getPrevious());
                             modifier.replace(instruction, new IntInsnNode(BIPUSH, result));
                             modified = true;
+                            count++;
                             break;
                         } else if (instruction.getOpcode() == I2S && ClassNodeUtil.isInteger(instruction.getPrevious())) {
                             final short result = (short) ClassNodeUtil.getInteger(instruction.getPrevious());
                             modifier.remove(instruction.getPrevious());
                             modifier.replace(instruction, new IntInsnNode(SIPUSH, result));
                             modified = true;
+                            count++;
                             break;
                         } else if (instruction.getOpcode() == I2L && ClassNodeUtil.isInteger(instruction.getPrevious())) {
                             final long result = ClassNodeUtil.getInteger(instruction.getPrevious());
                             modifier.remove(instruction.getPrevious());
                             modifier.replace(instruction, new LdcInsnNode(result));
                             modified = true;
+                            count++;
                             break;
                         } else if (instruction.getOpcode() == IADD || instruction.getOpcode() == ISUB || instruction.getOpcode() == IMUL || instruction.getOpcode() == IDIV
                                 || instruction.getOpcode() == IREM || instruction.getOpcode() == ISHL || instruction.getOpcode() == ISHR || instruction.getOpcode() == IUSHR
@@ -97,6 +110,7 @@ public class QProtectNumberTransformer extends Transformer {
                                     modifier.remove(ClassNodeUtil.getPrevious(instruction, 1));
                                     modifier.replace(instruction, ClassNodeUtil.getIntInsn(result));
                                     modified = true;
+                                    count++;
                                     break;
                                 }
                             }
@@ -112,6 +126,7 @@ public class QProtectNumberTransformer extends Transformer {
                                     modifier.remove(ClassNodeUtil.getPrevious(instruction, 1));
                                     modifier.replace(instruction, new LdcInsnNode(result));
                                     modified = true;
+                                    count++;
                                     break;
                                 }
                             }
@@ -121,6 +136,7 @@ public class QProtectNumberTransformer extends Transformer {
                 } while (modified);
             }
         }
+        Logger.info("Finish QProtectNumberTransformer with " + count + " arithmetics removed.");
     }
 
     private Integer doIntegerMath(int value1, int value2, int opcode) {
