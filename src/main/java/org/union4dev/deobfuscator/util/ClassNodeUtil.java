@@ -47,24 +47,77 @@ public class ClassNodeUtil {
         return classNode;
     }
 
+    public static AbstractInsnNode getPrevious(AbstractInsnNode instruction, int step) {
+        int currentStep = 0;
+        do {
+            instruction = instruction.getPrevious();
+            if (instruction.getOpcode() != -1) currentStep++;
+        } while (currentStep != step);
+        return instruction;
+    }
+
+    public static AbstractInsnNode getNext(AbstractInsnNode instruction, int step) {
+        int currentStep = 0;
+        do {
+            instruction = instruction.getNext();
+            if (instruction.getOpcode() != -1) currentStep++;
+        } while (currentStep != step);
+        return instruction;
+    }
+
     public static boolean isNumber(AbstractInsnNode node) {
-        if(node.getOpcode() >= Opcodes.ICONST_M1 && node.getOpcode() <= Opcodes.ICONST_5)
+        if (node.getOpcode() >= Opcodes.ICONST_M1 && node.getOpcode() <= Opcodes.SIPUSH)
             return true;
-        if(node.getOpcode() == Opcodes.SIPUSH || node.getOpcode() == Opcodes.BIPUSH)
-            return true;
-        if(node instanceof LdcInsnNode) {
+        if (node instanceof LdcInsnNode) {
             final LdcInsnNode ldc = (LdcInsnNode)node;
             return ldc.cst instanceof Number;
         }
         return false;
     }
 
-    public static Number getNumber(AbstractInsnNode node) {
-        if(node.getOpcode() >= Opcodes.ICONST_M1 && node.getOpcode() <= Opcodes.ICONST_5)
+    public static boolean isInteger(AbstractInsnNode node) {
+        if (node.getOpcode() >= Opcodes.ICONST_M1 && node.getOpcode() <= Opcodes.ICONST_5)
+            return true;
+        if (node.getOpcode() == Opcodes.SIPUSH || node.getOpcode() == Opcodes.BIPUSH)
+            return true;
+        if (node instanceof LdcInsnNode) {
+            final LdcInsnNode ldc = (LdcInsnNode)node;
+            return ldc.cst instanceof Integer;
+        }
+        return false;
+    }
+
+    public static int getInteger(AbstractInsnNode node) {
+        if (node.getOpcode() >= Opcodes.ICONST_M1 && node.getOpcode() <= Opcodes.ICONST_5)
             return node.getOpcode() - 3;
-        if(node.getOpcode() == Opcodes.SIPUSH || node.getOpcode() == Opcodes.BIPUSH)
+        if (node.getOpcode() == Opcodes.SIPUSH || node.getOpcode() == Opcodes.BIPUSH)
             return ((IntInsnNode)node).operand;
-        if(node instanceof LdcInsnNode) {
+        if (node instanceof LdcInsnNode) {
+            final LdcInsnNode ldc = (LdcInsnNode)node;
+            if (ldc.cst instanceof Integer) {
+                return (int) ldc.cst;
+            }
+        }
+        return 0;
+    }
+
+    public static AbstractInsnNode getIntInsn(int number) {
+        if (number >= -1 && number <= 5)
+            return new InsnNode(number + 3);
+        else if (number >= -128 && number <= 127)
+            return new IntInsnNode(Opcodes.BIPUSH, number);
+        else if (number >= -32768 && number <= 32767)
+            return new IntInsnNode(Opcodes.SIPUSH, number);
+        else
+            return new LdcInsnNode(number);
+    }
+
+    public static Number getNumber(AbstractInsnNode node) {
+        if (node.getOpcode() >= Opcodes.ICONST_M1 && node.getOpcode() <= Opcodes.ICONST_5)
+            return node.getOpcode() - 3;
+        if (node.getOpcode() == Opcodes.SIPUSH || node.getOpcode() == Opcodes.BIPUSH)
+            return ((IntInsnNode)node).operand;
+        if (node instanceof LdcInsnNode) {
             final LdcInsnNode ldc = (LdcInsnNode)node;
             if (ldc.cst instanceof Number) {
                 return (Number) ldc.cst;
@@ -73,12 +126,38 @@ public class ClassNodeUtil {
         return null;
     }
 
+    public static boolean isLong(AbstractInsnNode node) {
+        if (node instanceof LdcInsnNode) {
+            final LdcInsnNode ldc = (LdcInsnNode)node;
+            return ldc.cst instanceof Long;
+        }
+        return false;
+    }
+
+    public static long getLong(AbstractInsnNode node) {
+        if (node instanceof LdcInsnNode) {
+            final LdcInsnNode ldc = (LdcInsnNode)node;
+            if (ldc.cst instanceof Long) {
+                return (long) ldc.cst;
+            }
+        }
+        return 0L;
+    }
+
     public static boolean isString(AbstractInsnNode node) {
         if (node instanceof LdcInsnNode) {
             final LdcInsnNode ldc = (LdcInsnNode) node;
             return ldc.cst instanceof String;
         }
         return false;
+    }
+
+    public static String getString(AbstractInsnNode node) {
+        if (node instanceof LdcInsnNode) {
+            final LdcInsnNode ldc = (LdcInsnNode) node;
+            if (ldc.cst instanceof String) return (String) ldc.cst;
+        }
+        return null;
     }
 
     public static MethodNode getMethod(ClassNode classNode, String name, String desc) {

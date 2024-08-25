@@ -104,8 +104,8 @@ public class BranchlockStringTransformer extends Transformer {
                             AbstractInsnNode current = instruction.getNext();
                             int opcode = 0;
                             while (current != null && current.getOpcode() != AALOAD) {
-                                if (ClassNodeUtil.isNumber(current))
-                                    twoNum.add(ClassNodeUtil.getNumber(current));
+                                if (ClassNodeUtil.isInteger(current))
+                                    twoNum.add(ClassNodeUtil.getInteger(current));
                                 if (current.getOpcode() == ISHL || current.getOpcode() == IUSHR)
                                     opcode = current.getOpcode();
                                 cut.add(current);
